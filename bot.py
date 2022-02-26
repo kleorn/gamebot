@@ -1,5 +1,6 @@
 #pip install pyTelegramBotAPI
 #/home/admin/web/kan.01sh.ru/private/max_hippo_bot# cd /home/admin/web/kan.01sh.ru/private/max_hippo_bot && python3 bot.py
+import random
 import os
 if os.path.exists('config_secret.py'):
 	import config_secret as config
@@ -9,8 +10,7 @@ import telebot
 
 class GameServer:
 	def __init__(self):
-		self.selected_games = {}
-		self.games = []
+		self.selected_games = {} #словарь user_id: объект игры
 		self.games = [
 			{'func': KupiSlonaGame, 'num': '1', 'name': 'Купи слона'},
 			{'func': MulTableGame, 'num': '2', 'name': 'Таблица умножения'}
@@ -32,26 +32,52 @@ class SelectGame(Game):
 		if message.text in [game['num'] for game in srv.games]:
 			game = [game for game in srv.games if game['num'] == message.text][0]
 			srv.selected_games[message.chat.id] = game['func']
-			return 'Приготовься! Начинаем игру \"' + game['name'] + '\"\nДля возврата к выбору игры отправь \"!\"'
+			return 'Приготовься! Начинаем игру \"' + game['name'] + '\"\nДля возврата к выбору игры отправь \"!\"\n\n' + game['func'].start(message)
 
 
 class KupiSlonaGame(Game): #статический класс
 	data = {}
-	def reply(message):
+	@classmethod
+	def reply(cls, message):
 		return 'Все говорят \"' + message.text + '\", а ты купи слона'
+	@classmethod
+	def start(cls, message):
+		uid = message.chat.id
+		cls.data[uid] = {}
+		return 'УНИКАЛЬНОЕ ПРЕДЛОЖЕНИЕ!!! Купи слона!'
 
 class MulTableGame(Game):
 	data = {}
 
 	@classmethod
+	def start(cls, message):
+		uid = message.chat.id
+		cls.data[uid] = {}
+		cls.data[uid]['score'] = 0
+		return cls.ask_question(message)
+
+	@classmethod
 	def reply(cls, message):
 		uid = message.chat.id
-		if uid in cls.data and 'question' in cls.data[uid]:
-			return 'Вопрос  :' + cls.data[uid]['question'] + '\nОтвет: ' + message.text
+		if 'question' in cls.data[uid]: #если уже задан вопрос
+			if message.text == cls.data[uid]['answer']:
+				cls.data[uid].pop('question')
+				cls.data[uid]['score'] += int(cls.data[uid]['answer'])
+				return 'Правильно, Анютка, ' + message.text + '! \n Счет - ' + str(cls.data[uid]['score']) + ' очков\nДавай ещё!\n' + cls.ask_question(message)
+			else:
+				return "Давай ещё варианты!"
 		else:
-			cls.data[uid]={}
-			cls.data[uid]['question'] = '2 x 2?'
-			return 'Вопрос  :' + cls.data[uid]['question']
+			return cls.ask_question(cls, message)
+
+	@classmethod
+	def ask_question(cls, message):
+		uid = message.chat.id
+		a = random.randint(1, 10)
+		b = random.randint(1, 10)
+		cls.data[uid]['question'] = str(a) + ' x ' + str(b) + '?'
+		cls.data[uid]['answer'] = str(a * b)
+
+		return cls.data[uid]['question']
 
 srv = GameServer()
 bot = telebot.TeleBot(config.TOKEN)
