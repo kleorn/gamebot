@@ -42,8 +42,16 @@ class KupiSlonaGame(Game): #статический класс
 
 class MulTableGame(Game):
 	data = {}
-	def reply(message):
-		return 'Все говорят \"' + message.text + '\", а ты поменяешь дерево на овцу?'
+
+	@classmethod
+	def reply(cls, message):
+		uid = message.chat.id
+		if uid in cls.data and 'question' in cls.data[uid]:
+			return 'Вопрос  :' + cls.data[uid]['question'] + '\nОтвет: ' + message.text
+		else:
+			cls.data[uid]={}
+			cls.data[uid]['question'] = '2 x 2?'
+			return 'Вопрос  :' + cls.data[uid]['question']
 
 srv = GameServer()
 bot = telebot.TeleBot(config.TOKEN)
