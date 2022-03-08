@@ -13,7 +13,8 @@ class GameServer:
 		self.selected_games = {} #словарь user_id: объект игры
 		self.games = [
 			{'func': KupiSlonaGame, 'num': '1', 'name': 'Купи слона'},
-			{'func': MulTableGame, 'num': '2', 'name': 'Таблица умножения'}
+			{'func': MulTableGame, 'num': '2', 'name': 'Таблица умножения'},
+			{'func': SuperMulTableGame, 'num': '3', 'name': 'Супертаблица умножения'}
 		]
 
 	def list_games(self, message):
@@ -48,7 +49,6 @@ class KupiSlonaGame(Game): #статический класс
 
 class MulTableGame(Game):
 	data = {}
-
 	@classmethod
 	def start(cls, message):
 		uid = message.chat.id
@@ -78,6 +78,39 @@ class MulTableGame(Game):
 		cls.data[uid]['answer'] = str(a * b)
 
 		return cls.data[uid]['question']
+
+class SuperMulTableGame(Game):
+	data = {}
+	@classmethod
+	def start(cls, message):
+		uid = message.chat.id
+		cls.data[uid] = {}
+		cls.data[uid]['score'] = 0
+		return cls.ask_question(message)
+
+	@classmethod
+	def reply(cls, message):
+		uid = message.chat.id
+		if 'question' in cls.data[uid]: #если уже задан вопрос
+			if message.text == cls.data[uid]['answer']:
+				cls.data[uid].pop('question')
+				cls.data[uid]['score'] += int(cls.data[uid]['answer'])*100
+				return 'Правильно, Анютка, ' + message.text + '! \n Счет - ' + str(cls.data[uid]['score']) + ' очков\nДавай ещё!\n' + cls.ask_question(message)
+			else:
+				return "Давай ещё варианты!"
+		else:
+			return cls.ask_question(cls, message)
+
+	@classmethod
+	def ask_question(cls, message):
+		uid = message.chat.id
+		a = random.randint(10, 15)
+		b = random.randint(1, 15)
+		cls.data[uid]['question'] = str(a) + ' x ' + str(b) + '?'
+		cls.data[uid]['answer'] = str(a * b)
+		return cls.data[uid]['question']
+
+
 
 srv = GameServer()
 bot = telebot.TeleBot(config.TOKEN)
