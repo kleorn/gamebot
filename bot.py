@@ -47,7 +47,7 @@ class EnterUrName(Game): #статический класс
 	@classmethod
 	def start(cls, message):
 		uid = message.chat.id
-		return 'Как тебя зовут?'
+		return 'Как тебя зовут? Анютка?😀🐁'
 
 
 class KupiSlonaGame(Game): #статический класс
