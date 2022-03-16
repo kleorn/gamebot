@@ -1,5 +1,5 @@
 #pip install pyTelegramBotAPI
-#/home/admin/web/kan.01sh.ru/private/max_hippo_bot# cd /home/admin/web/kan.01sh.ru/private/max_hippo_bot && python3 bot.py
+#@reboot cd /home/admin/web/m-kan.ru/private/gamebot && python3 bot.py
 import random
 import os
 if os.path.exists('config_secret.py'):
@@ -16,6 +16,7 @@ class GameServer:
 			{'func': MulTableGame, 'num': '2', 'name': 'Таблица умножения'},
 			{'func': SuperMulTableGame, 'num': '3', 'name': 'Супертаблица умножения'}
 		]
+		self.data = {}
 
 	def list_games(self, message):
 		self.selected_games[message.chat.id] = SelectGame
@@ -23,6 +24,7 @@ class GameServer:
 		for g in self.games:
 			games_list_str += g['num'] + ' - ' + g['name'] + '\n'
 		return games_list_str
+
 
 class Game:
 	def __init__(self):
@@ -34,6 +36,18 @@ class SelectGame(Game):
 			game = [game for game in srv.games if game['num'] == message.text][0]
 			srv.selected_games[message.chat.id] = game['func']
 			return 'Приготовься! Начинаем игру \"' + game['name'] + '\"\nДля возврата к выбору игры отправь \"!\"\n\n' + game['func'].start(message)
+
+class EnterUrName(Game): #статический класс
+	@classmethod
+	def reply(cls, message):
+		uid = message.chat.id
+		srv.data[uid] = {}
+		srv.data[uid]['username'] = message.text
+		return 'А я - робот! Приятно познакомиться, ' + message.text + '!'
+	@classmethod
+	def start(cls, message):
+		uid = message.chat.id
+		return 'Как тебя зовут?'
 
 
 class KupiSlonaGame(Game): #статический класс
