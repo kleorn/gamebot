@@ -43,7 +43,7 @@ class EnterUrName(Game): #статический класс
 		uid = message.chat.id
 		srv.data[uid] = {}
 		srv.data[uid]['username'] = message.text
-		return 'А я - робот! Приятно познакомиться, ' + message.text + '!'
+		return 'А я - Бегемотобот! Приятно познакомиться, ' + message.text + '!\nЧтобы представиться заново, введи "?"\n' + srv.list_games(message)
 	@classmethod
 	def start(cls, message):
 		uid = message.chat.id
@@ -77,7 +77,7 @@ class MulTableGame(Game):
 			if message.text == cls.data[uid]['answer']:
 				cls.data[uid].pop('question')
 				cls.data[uid]['score'] += int(cls.data[uid]['answer'])
-				return 'Правильно, Анютка, ' + message.text + '! \n Счет - ' + str(cls.data[uid]['score']) + ' очков\nДавай ещё!\n' + cls.ask_question(message)
+				return 'Правильно, ' + srv.data[uid]['username'] + ', ' + message.text + '! \nСчет - ' + str(cls.data[uid]['score']) + ' очков\nДавай ещё!\n' + cls.ask_question(message)
 			else:
 				return "Давай ещё варианты!"
 		else:
@@ -109,7 +109,7 @@ class SuperMulTableGame(Game):
 			if message.text == cls.data[uid]['answer']:
 				cls.data[uid].pop('question')
 				cls.data[uid]['score'] += int(cls.data[uid]['answer'])*100
-				return 'Правильно, Анютка, ' + message.text + '! \n Счет - ' + str(cls.data[uid]['score']) + ' очков\nДавай ещё!\n' + cls.ask_question(message)
+				return 'Правильно, ' + srv.data[uid]['username'] + ', ' + message.text + '! \nСчет - ' + str(cls.data[uid]['score']) + ' очков\nДавай ещё!\n' + cls.ask_question(message)
 			else:
 				return "Давай ещё варианты!"
 		else:
@@ -132,14 +132,17 @@ bot = telebot.TeleBot(config.TOKEN)
 #задаем реакцию на получение ботом текстового сообщения
 @bot.message_handler(content_types=['text'])
 def repeat_all_messages(message):
-	if message.chat.id not in srv.selected_games or message.text == '!':
-		reply_func = srv.list_games
-	# elif selected_games[message.chat.id] == 'select_game' MODE == 'select_game'
+	uid = message.chat.id
+	if uid not in srv.selected_games or message.text == '?': #если ещё не записано имя
+		reply = EnterUrName.start(message)
+		srv.selected_games[uid]=EnterUrName
 	else:
-		reply_func = srv.selected_games[message.chat.id].reply
-	reply = reply_func(message)
+		if message.text == '!':
+			reply_func = srv.list_games
+		else:
+			reply_func = srv.selected_games[message.chat.id].reply
+		reply = reply_func(message)
 
 	bot.send_message(message.chat.id, reply)
-	# bot.send_message(message.chat.id, message.chat.id)
 
 bot.polling(non_stop=True) #запускаем постоянную обработку сообщений
