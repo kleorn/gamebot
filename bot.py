@@ -7,6 +7,7 @@ if os.path.exists('config_secret.py'):
 else:
 	import config
 import telebot
+import csv
 
 class GameServer:
 	def __init__(self):
@@ -14,7 +15,8 @@ class GameServer:
 		self.games = [
 			{'func': KupiSlonaGame, 'num': '1', 'name': 'Купи слона'},
 			{'func': MulTableGame, 'num': '2', 'name': 'Таблица умножения'},
-			{'func': SuperMulTableGame, 'num': '3', 'name': 'Супертаблица умножения'}
+			{'func': SuperMulTableGame, 'num': '3', 'name': 'Супертаблица умножения'},
+			{'func': EngDictGame, 'num': '4', 'name': 'English words'}
 		]
 		self.data = {}
 
@@ -122,6 +124,59 @@ class SuperMulTableGame(Game):
 		b = random.randint(1, 15)
 		cls.data[uid]['question'] = str(a) + ' x ' + str(b) + '?'
 		cls.data[uid]['answer'] = str(a * b)
+		return cls.data[uid]['question']
+
+class EngDictGame(Game):
+	data = {}
+	common_eng_dict = {}
+	filename = 'engdict.csv'
+	with open(filename, encoding='utf-8') as f:
+		reader = csv.reader(f, delimiter=';')
+		for row in reader:
+			common_eng_dict[row[0]] = row[1]
+
+	@classmethod
+	def start(cls, message):
+		uid = message.chat.id
+		cls.data[uid] = {}
+		cls.data[uid]['score'] = 0
+		cls.data[uid]['eng_dict']=cls.common_eng_dict.copy()
+		return cls.ask_question(message)
+
+	@classmethod
+	def reply(cls, message):
+		uid = message.chat.id
+		if 'question' in cls.data[uid]: #если уже задан вопрос
+			if message.text.lower().strip() == cls.data[uid]['answer']:
+				cls.data[uid]['eng_dict'].pop(cls.data[uid]['question_word'])
+				cls.data[uid].pop('question')
+				cls.data[uid].pop('question_word')
+				cls.data[uid]['score'] += 20
+
+				reply_text = 'Правильно, ' + srv.data[uid]['username'] + ', ' + message.text + '! \nСчет - ' + str(cls.data[uid]['score']) + ' очков\nДавай ещё!\n'
+
+				if len(cls.data[uid]['eng_dict'])==0:
+					cls.data[uid]['eng_dict'] = cls.common_eng_dict.copy()
+					reply_text += 'ПОЗДРАВЯЮ! ВСЕ СЛОВА СНОВА ПОБЕЖДЕНЫ!\n'
+
+				return reply_text + cls.ask_question(message)
+			else:
+				return "Давай ещё варианты!"
+		else:
+			return cls.ask_question(cls, message)
+
+	@classmethod
+	def ask_question(cls, message):
+		uid = message.chat.id
+		a = random.randint(0, len(cls.data[uid]['eng_dict']) - 1)
+		dict_keys=list(cls.data[uid]['eng_dict'].keys())
+		question_icons=['🇬🇧','🚢','🏰','🎡']
+		question_icon = question_icons[random.randint(0, len(question_icons)-1)]
+		cls.data[uid]['question'] = 'What\'s English for \'' + dict_keys[a] + '\'? ' + question_icon
+
+		cls.data[uid]['question_word'] = dict_keys[a]
+		cls.data[uid]['answer'] = cls.data[uid]['eng_dict'][dict_keys[a]]
+
 		return cls.data[uid]['question']
 
 
