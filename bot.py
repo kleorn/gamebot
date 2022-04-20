@@ -45,7 +45,7 @@ class EnterUrName(Game): #статический класс
 		uid = message.chat.id
 		srv.data[uid] = {}
 		srv.data[uid]['username'] = message.text
-		return 'А я - Бегемотобот! Приятно познакомиться, ' + message.text + '!\nЧтобы представиться заново, введи "?"\n' + srv.list_games(message)
+		return 'Приятно познакомиться, ' + message.text + '! А я - ' + config.BOT_NAME + '!\nЧтобы представиться заново, введи "?"\n' + srv.list_games(message)
 	@classmethod
 	def start(cls, message):
 		uid = message.chat.id
@@ -133,7 +133,7 @@ class EngDictGame(Game):
 	with open(filename, encoding='utf-8') as f:
 		reader = csv.reader(f, delimiter=';')
 		for row in reader:
-			common_eng_dict[row[0]] = row[1]
+			common_eng_dict[row[1]] = row[0] #файл: слово;перевод. словарь: { перевод: слово }
 
 	@classmethod
 	def start(cls, message):
@@ -149,8 +149,9 @@ class EngDictGame(Game):
 		if 'question' in cls.data[uid]: #если уже задан вопрос
 			if message.text.lower().strip() == cls.data[uid]['answer']:
 				cls.data[uid]['eng_dict'].pop(cls.data[uid]['question_word'])
-				cls.data[uid].pop('question')
-				cls.data[uid].pop('question_word')
+				if config.DONT_REPEAT_WORDS:
+					cls.data[uid].pop('question')
+					cls.data[uid].pop('question_word')
 				cls.data[uid]['score'] += 20
 
 				reply_text = 'Правильно, ' + srv.data[uid]['username'] + ', ' + message.text + '! \nСчет - ' + str(cls.data[uid]['score']) + ' очков\nДавай ещё!\n'
@@ -161,7 +162,7 @@ class EngDictGame(Game):
 
 				return reply_text + cls.ask_question(message)
 			else:
-				return "Давай ещё варианты!"
+				return "Давай ещё варианты!\nПодсказка: " + cls.data[uid]['answer'][::-1]
 		else:
 			return cls.ask_question(cls, message)
 
