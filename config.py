@@ -1,3 +1,6 @@
+import logging
+
 TOKEN = 'INSERT_TELEGRAM_BOT_TOKEN_HERE'
 BOT_NAME = 'Max\'s Game Bot'
 DONT_REPEAT_WORDS = False
+LOG_LEVEL = logging.INFO
