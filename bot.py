@@ -184,8 +184,8 @@ try:
 	#print(sys.modules)
 	if not os.path.exists('logs'):
 		os.mkdir('logs')
-	if not os.path.exists('logs\\' + LOG_FILENAME):
-		with open('logs\\' + LOG_FILENAME, 'w', newline='', encoding='utf-8') as logfile:
+	if not os.path.exists('logs/' + LOG_FILENAME):
+		with open('logs/' + LOG_FILENAME, 'w', newline='', encoding='utf-8') as logfile:
 			# conf_file.write(str(codecs.BOM_UTF8)) - не работает
 			bom_utf8 = u'\ufeff'
 			header = 'Timestamp;Level;Module;Line;UID;TG Username;Username;Chat name;Game;User message;Reply\n'
