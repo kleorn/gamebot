@@ -148,7 +148,7 @@ try:
 		@classmethod
 		def reply(cls, message):
 			if 'question' in cls.data[message.uid]: #если уже задан вопрос
-				if message.text.lower().strip() == cls.data[message.uid]['answer']:
+				if message.text.lower().strip() == cls.data[message.uid]['answer'].lower().strip():
 					cls.data[message.uid]['eng_dict'].pop(cls.data[message.uid]['question_word'])
 					if srv.get_config('DONT_REPEAT_WORDS'):
 						cls.data[message.uid].pop('question')
