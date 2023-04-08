@@ -196,7 +196,7 @@ try:
 	handlers_list = [file_handler]
 	logging.basicConfig(handlers=handlers_list,
 	                    format='%(asctime)s;%(levelname)s;%(name)s;%(lineno)s;%(message)s', level=srv.get_config('LOG_LEVEL'),
-	                    datefmt='%m-%d-%Y %H:%M:%S')  # вызывать 1 раз
+	                    datefmt='%d-%m-%Y %H:%M:%S')  # вызывать 1 раз
 
 	bot = telebot.TeleBot(srv.get_config('TOKEN'))
 
